@@ -7,9 +7,13 @@ class Team(models.Model):
     score = models.FloatField(default=0)
 
     def add_points(self):
+        """Add points points according to the captured flag.
+        Should be called periodically (with a cronjob for example).
+        """
         captured_flags = Flag.objects.filter(owner_id=self.id)
         earned_points = captured_flags.aggregate(Sum('worth'))['worth__sum']
-        self.score += earned_points
+        if earned_points:
+            self.score += earned_points
 
     def __str__(self):
         return f"{self.name}"
