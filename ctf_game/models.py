@@ -6,14 +6,24 @@ class Team(models.Model):
     name = models.CharField(max_length=50)
     score = models.FloatField(default=0)
 
-    def add_points(self):
+    def add_points():
         """Add points points according to the captured flag.
         Should be called periodically (with a cronjob for example).
         """
-        captured_flags = Flag.objects.filter(owner_id=self.id)
-        earned_points = captured_flags.aggregate(Sum('worth'))['worth__sum']
-        if earned_points:
-            self.score += earned_points
+        flags = Flag.objects.all()
+        teams = []
+        for flag in flags:
+            team = flag.owner
+            team.score += flag.worth
+            teams.append(team)
+        Team.objects.bulk_update(teams, ['score'])
+
+    def reset_points():
+        """Reset points of all teams."""
+        teams = Team.objects.all()
+        for team in teams:
+            team.score = 0
+        Team.objects.bulk_update(teams, ['score'])
 
     def __str__(self):
         return f"{self.name}"
